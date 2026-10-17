@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO IPTV - Premium Stream Player</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Hls.js Library for HLS (.m3u8) Playback -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <div class="app-layout">
+        <!-- TOP NAVIGATION -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                </div>
+                <h1>SURAJ <span>IPTV</span></h1>
+            </div>
+            
+            <div class="header-stats">
+                <div class="stat-badge">
+                    <span class="stat-dot green"></span>
+                    <span id="playlist-name">Loading...</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Channels:</span>
+                    <span id="channel-count" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button id="import-playlist-btn" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Import M3U</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <div class="app-main">
+            <!-- SIDEBAR -->
+            <aside class="app-sidebar" id="sidebar">
+                <div class="sidebar-search">
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search channels...">
+                        <button id="clear-search" class="clear-btn" style="display: none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-categories">
+                    <div class="categories-list" id="categories-container">
+                        <!-- Categories will be generated dynamically -->
+                    </div>
+                </div>
+
+                <div class="sidebar-channels">
+                    <div id="channels-loader" class="list-loader">
+                        <div class="spinner"></div>
+                        <p>Loading playlist channels...</p>
+                    </div>
+                    <div class="channels-list" id="channels-container">
+                        <!-- Channels will be populated here -->
+                    </div>
+                    <div id="no-channels-msg" class="no-channels" style="display: none;">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                        <p>No channels found matching the criteria</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- PLAYER AND INFO -->
+            <main class="player-wrapper">
+                <!-- VIDEO CONTAINER -->
+                <div class="video-container" id="video-container">
+                    <video id="video-element" poster="data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'800' height%3D'450' viewBox%3D'0 0 800 450'%3E%3Crect width%3D'100%25' height%3D'100%25' fill%3D'%230e0a17'%2F%3E%3Cpath d%3D'M370 200l70 25-70 25v-50z' fill%3D'%237e5bef'%2F%3E%3C%2Fsvg%3E"></video>
+                    
+                    <!-- BIG PLAY OVERLAY -->
+                    <div class="video-overlay" id="play-overlay">
+                        <div class="play-icon-large">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- BUFFERING SPINNER -->
+                    <div class="video-spinner" id="video-spinner" style="display: none;">
+                        <div class="spinner-large"></div>
+                        <p>Buffering Stream...</p>
+                    </div>
+
+                    <!-- ERROR DISPLAY -->
+                    <div class="video-error" id="video-error" style="display: none;">
+                        <div class="error-card">
+                            <div class="error-icon">
+                                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <h3>Stream Error</h3>
+                            <p id="error-message">This stream could not be loaded. It may be offline or requires CORS bypass.</p>
+                            <div class="error-actions">
+                                <button id="retry-stream-btn" class="btn btn-secondary btn-sm">Retry</button>
+                                <button id="diagnose-btn" class="btn btn-outline btn-sm">Details</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CUSTOM PLAYER CONTROLS -->
+                    <div class="custom-controls" id="custom-controls">
+                        <!-- Progress Bar (mostly for non-live or seekable streams) -->
+                        <div class="progress-container" id="progress-container">
+                            <div class="progress-bar" id="progress-bar">
+                                <div class="progress-hover"></div>
+                                <div class="progress-current" id="progress-current">
+                                    <div class="progress-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Button Controls -->
+                        <div class="controls-row">
+                            <div class="controls-left">
+                                <button id="control-play" class="control-btn" title="Play (Space)">
+                                    <svg class="play-svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <svg class="pause-svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                        <rect x="6" y="4" width="4" height="16"></rect>
+                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                    </svg>
+                                </button>
+
+                                <button id="control-prev" class="control-btn" title="Previous Channel">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                        <line x1="5" y1="4" x2="5" y2="20" stroke="currentColor" stroke-width="3"></line>
+                                    </svg>
+                                </button>
+
+                                <button id="control-next" class="control-btn" title="Next Channel">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                        <line x1="19" y1="4" x2="19" y2="20" stroke="currentColor" stroke-width="3"></line>
+                                    </svg>
+                                </button>
+
+                                <div class="volume-container">
+                                    <button id="control-mute" class="control-btn" title="Mute">
+                                        <svg class="volume-up-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                        </svg>
+                                        <svg class="volume-mute-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                                        </svg>
+                                    </button>
+                                    <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.8">
+                                </div>
+
+                                <div class="time-display">
+                                    <span id="time-current">0:00</span>
+                                    <span class="time-separator">/</span>
+                                    <span id="time-duration">LIVE</span>
+                                </div>
+                            </div>
+
+                            <div class="controls-right">
+                                <button id="control-refresh" class="control-btn" title="Refresh Stream">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                                    </svg>
+                                </button>
+                                <button id="control-theater" class="control-btn" title="Theater Mode">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                                        <line x1="6" y1="4" x2="6" y2="20"></line>
+                                    </svg>
+                                </button>
+                                <button id="control-pip" class="control-btn" title="Picture in Picture">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                                        <rect x="13" y="11" width="7" height="7" rx="1"></rect>
+                                    </svg>
+                                </button>
+                                <button id="control-fullscreen" class="control-btn" title="Fullscreen (F)">
+                                    <svg class="fullscreen-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                                    </svg>
+                                    <svg class="exit-fullscreen-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                        <path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHANNEL DETAILS PANEL -->
+                <section class="channel-info-panel">
+                    <div class="channel-info-left">
+                        <div class="active-channel-logo-container">
+                            <img id="active-channel-logo" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'64' height%3D'64' viewBox%3D'0 0 64 64'%3E%3Crect width%3D'100%25' height%3D'100%25' fill%3D'%231a1528'%2F%3E%3Cpath d%3D'M30 24l8 8-8 8v-16z' fill%3D'%237e5bef'%2F%3E%3C%2Fsvg%3E" alt="Channel Logo">
+                        </div>
+                        <div class="active-channel-meta">
+                            <div class="title-row">
+                                <h2 id="active-channel-name">Select a Channel</h2>
+                                <button id="favorite-toggle-btn" class="fav-btn" title="Add to Favorites">
+                                    <svg class="star-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                    <svg class="star-filled" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="meta-row">
+                                <span id="active-channel-category" class="category-tag">None</span>
+                                <span id="stream-type" class="stream-type-tag">HLS Stream</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="channel-info-right">
+                        <div class="stream-url-box">
+                            <span class="url-label">Source URL</span>
+                            <div class="url-input-container">
+                                <input type="text" id="active-stream-url" readonly value="" placeholder="No channel loaded">
+                                <button id="copy-url-btn" class="btn-icon" title="Copy Stream URL">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- PLAYLIST IMPORT MODAL -->
+    <div class="modal" id="import-modal">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import M3U Playlist</h2>
+                <button class="modal-close" id="modal-close">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="tab-container">
+                    <div class="tab-headers">
+                        <button class="tab-btn active" data-tab="tab-file">Upload File</button>
+                        <button class="tab-btn" data-tab="tab-url">Remote URL</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab-file">
+                        <div class="drag-drop-zone" id="drag-drop-zone">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <h3>Drag & Drop your M3U file</h3>
+                            <p>or click to browse your computer</p>
+                            <input type="file" id="file-input" accept=".m3u,.m3u8" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-url">
+                        <div class="url-input-form">
+                            <label for="playlist-url">M3U Playlist URL</label>
+                            <div class="url-submit-row">
+                                <input type="url" id="playlist-url" placeholder="https://example.com/playlist.m3u">
+                                <button id="load-url-btn" class="btn btn-primary">Load</button>
+                            </div>
+                            <p class="form-tip">Note: The remote server must allow CORS (Cross-Origin Resource Sharing), otherwise loading might fail in the browser.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="default-playlist-section">
+                    <p class="section-divider"><span>OR</span></p>
+                    <button id="load-default-btn" class="btn btn-outline btn-full">
+                        Load India Default Playlist (India_1.iptvcat.org.m3u8)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIAGNOSTICS MODAL -->
+    <div class="modal" id="diagnostics-modal">
+        <div class="modal-overlay" id="diag-modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>CORS & Diagnostics Info</h2>
+                <button class="modal-close" id="diag-modal-close">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body diagnostic-body">
+                <div class="diag-item">
+                    <strong>Why did the stream fail?</strong>
+                    <p>Modern browsers enforce strict security rules (CORS) when a webpage requests video files from other domains. If the IPTV server does not authorize Cross-Origin requests, your browser blocks the stream.</p>
+                </div>
+                <div class="diag-item">
+                    <strong>How to fix it:</strong>
+                    <ul>
+                        <li>Use a browser extension to bypass CORS (e.g. "Allow CORS: Access-Control-Allow-Origin").</li>
+                        <li>Run the browser with disabled web-security flags for personal testing.</li>
+                        <li>Verify if the channel URL works by playing it in VLC Media Player. Many free IPTV streams go offline frequently.</li>
+                    </ul>
+                </div>
+                <div class="diag-item">
+                    <strong>Active Stream Diagnostics:</strong>
+                    <pre id="diagnostics-log">No stream loaded yet.</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic Script -->
+    <script src="app.js"></script>
+</body>
+</html>
