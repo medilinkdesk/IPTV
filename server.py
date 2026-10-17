@@ -17,6 +17,14 @@ class IPTVProxyHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def do_HEAD(self):
+        if self.path.startswith('/proxy?url='):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/vnd.apple.mpegurl')
+            self.end_headers()
+            return
+        super().do_HEAD()
+
     def do_GET(self):
         if self.path.startswith('/proxy?url='):
             raw_url = self.path[len('/proxy?url='):]
