@@ -2,8 +2,8 @@
 title SURAJ IPTV Player
 echo ==============================================
 echo  Starting SURAJ IPTV Player with CORS Proxy...
-echo  Opening http://localhost:8080 in browser
+echo  Opening http://127.0.0.1:8080 in browser
 echo ==============================================
-start http://localhost:8080/
-python server.py
+start http://127.0.0.1:8080/
+python -u server.py
 pause

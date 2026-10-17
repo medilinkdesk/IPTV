@@ -40,6 +40,38 @@
             </div>
 
             <div class="header-actions">
+                <!-- Country Dropdown Selector -->
+                <div class="country-selector-container">
+                    <span class="country-icon">🌐</span>
+                    <select id="country-select" class="country-dropdown" title="Select Country Playlist">
+                        <option value="in" selected>🇮🇳 India</option>
+                        <option value="us">🇺🇸 United States</option>
+                        <option value="uk">🇬🇧 United Kingdom</option>
+                        <option value="ca">🇨🇦 Canada</option>
+                        <option value="au">🇦🇺 Australia</option>
+                        <option value="pk">🇵🇰 Pakistan</option>
+                        <option value="bd">🇧🇩 Bangladesh</option>
+                        <option value="ae">🇦🇪 UAE</option>
+                        <option value="sa">🇸🇦 Saudi Arabia</option>
+                        <option value="de">🇩🇪 Germany</option>
+                        <option value="fr">🇫🇷 France</option>
+                        <option value="it">🇮🇹 Italy</option>
+                        <option value="es">🇪🇸 Spain</option>
+                        <option value="br">🇧🇷 Brazil</option>
+                        <option value="jp">🇯🇵 Japan</option>
+                        <option value="kr">🇰🇷 South Korea</option>
+                        <option value="ru">🇷🇺 Russia</option>
+                        <option value="tr">🇹🇷 Turkey</option>
+                        <option value="all">🌍 All Countries (Global)</option>
+                    </select>
+                </div>
+
+                <!-- CORS Stream Proxy Toggle -->
+                <button id="proxy-toggle-btn" class="btn btn-outline btn-proxy active" title="Toggle Stream Proxy (Bypasses CORS restrictions)">
+                    <span class="proxy-dot"></span>
+                    <span id="proxy-status-text">Proxy: ON</span>
+                </button>
+
                 <button id="import-playlist-btn" class="btn btn-primary">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -130,6 +162,7 @@
                             <p id="error-message">This stream could not be loaded. It may be offline or requires CORS bypass.</p>
                             <div class="error-actions">
                                 <button id="retry-stream-btn" class="btn btn-secondary btn-sm">Retry</button>
+                                <button id="toggle-proxy-retry-btn" class="btn btn-primary btn-sm">Retry with Proxy</button>
                                 <button id="diagnose-btn" class="btn btn-outline btn-sm">Details</button>
                             </div>
                         </div>
@@ -318,9 +351,20 @@
                 </div>
 
                 <div class="default-playlist-section">
-                    <p class="section-divider"><span>OR</span></p>
-                    <button id="load-default-btn" class="btn btn-outline btn-full">
-                        Load India Default Playlist (India_1.iptvcat.org.m3u8)
+                    <p class="section-divider"><span>OR QUICK LOAD BY COUNTRY</span></p>
+                    <div class="country-quick-grid">
+                        <button class="country-quick-btn" data-country="in">🇮🇳 India</button>
+                        <button class="country-quick-btn" data-country="us">🇺🇸 USA</button>
+                        <button class="country-quick-btn" data-country="uk">🇬🇧 UK</button>
+                        <button class="country-quick-btn" data-country="ca">🇨🇦 Canada</button>
+                        <button class="country-quick-btn" data-country="au">🇦🇺 Australia</button>
+                        <button class="country-quick-btn" data-country="pk">🇵🇰 Pakistan</button>
+                        <button class="country-quick-btn" data-country="bd">🇧🇩 Bangladesh</button>
+                        <button class="country-quick-btn" data-country="ae">🇦🇪 UAE</button>
+                        <button class="country-quick-btn" data-country="all">🌍 Global</button>
+                    </div>
+                    <button id="load-default-btn" class="btn btn-outline btn-full" style="margin-top: 12px;">
+                        Load Local Offline Playlist (India_1.iptvcat.org.m3u8)
                     </button>
                 </div>
             </div>
